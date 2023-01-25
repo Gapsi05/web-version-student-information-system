@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}
+<title>MSU-IIT SIS | Students Info</title> 
+{% endblock %}
+
+{%block navigation%}
+<header class="d-flex-2">
+            <div class="container navi">
+                <nav class="navbar navbar-expand-sm navbar-light" id="parentNavbar">
+                    <div class="container">
+                            <ul class="navbar-nav">
+                                <li class="nav-item">
+                                    <a href="/students" class="nav-link">
+                                        Students
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/courses" class="nav-link">
+                                        Courses
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="/colleges" class="nav-link">
+                                        Colleges
+                                    </a>
+                                </li>
+                            </ul>
+                    </div>
+                </nav>
+            </div>
+        </header>
+
+{% endblock %}
+
+{% block table %}
+
+<table class="table table-hover caption-top table-responsive-xl">
+    <caption>
+       <div id="caption">
+            <div class="d-flex align-items-center caption-lower">
+                <button class="btn btn-success" id="addNew" data-bs-toggle="modal" data-bs-target="#addStudentForm"><i class="fa fa-plus"></i>&nbsp;Add student</button>
+                <div class="space"> </div>
+                <form class="pt-3 pb-student d-flex align-items-center caption-lower" method="post" action="{{ url_for('student.search') }}">
+                    <select id="field" name="field" class="form-select p-2">
+                        <option>Search Field</option>
+                        <option value="id">Student ID</option>
+                        <option value="first">First Name</option>
+                        <option value="middle">Middle Name</option>
+                        <option value="last">Last Name</option>
+                        <option value="gender">Gender</option>
+                        <option value="year">Year Level</option>
+                        <option value="course">Course</option>
+                    </select>
+                    <input id="searchField" type="text" class="p-2 m-2 searchfield" name="user-input" placeholder="Start typing...">
+                    <button class="btn btn-info"><i class="fa fa-search"></i>&nbsp;Search</button>
+                </form>
+
+            </div>
+        </div>
+        {% include "includes/alert_message.html"%}
+    </caption>
+    <thead class="student-table-header">
+        <tr style="color:rgb(255, 255, 255); position: sticky;">
+            <th scope="col">ID Number</th>
+            <th scope="col">PROFILE</th>
+            <th scope="col">NAME</th>
+            <th scope="col">GENDER</th>
+            <th scope="col">YEAR LEVEL</th>
+            <th scope="col">COURSE</th>
+            <th scope="col">ACTION</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for student in data[0] %}
+            <tr>
+                <td><b>{{student.0}}</b></td>
+                {% if student.7 and ('cloudinary.com' not in student.7) %}
+                <td data-bs-toggle="modal" data-bs-target="#student{{student.0}}">
+                    <div class="student-table-image-container">
+                        <img class="student-table-image"
+                        src="../static/entity_photos/students/{{student.7}}">
+                    </div>
+                </td>
+                {% elif 'cloudinary.com' in student.7 %}
+                <td data-bs-toggle="modal" data-bs-target="#student{{student.0}}">
+                    <div class="student-table-image-container">
+                        <img class="student-table-image" src="{{student.7}}">
+                    </div>
+                </td>   
+                {% else %}
+                <td>
+                    <div style="width: 50px; height: 50px; border-radius: 50px; display: flex; overflow: hidden;">
+                        <img style="display: flex; justify-content: center;" 
+                        src="../static/entity_photos/students/student-profile-template.png">
+                    </div>
+                </td>
+                {% endif %}
+                {% if student[2].strip() != '' %}
+                <td>{{student.1}} {{student[2][0]}}. {{student.3}}</td>
+                {% endif %}
+                {% if student[2].strip() == '' %}
+                <td>{{student.1}} {{student.3}}</td>
+                {% endif %}
+                <td>{{student[4]}}</td>
+                <td>{{student[5]}}</td>
+                <td title="{{student.8}}">{{student[6]}}</td>
+                <td>
+                    <a href="{{url_for('student.update', id=student[0])}}" class="btn btn-outline-info" data-bs-toggle="modal" data-bs-target="#updateStudent{{student[0]}}"><i class="fas fa-edit"></i> Edit</a>
+                    <a href="{{url_for('student.delete', id=student[0])}}" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to remove {{student.1}} ?')"><i class="fas fa-trash"></i> Delete</a>
+                    
+                </td>
+            </tr>
+        <!-- update_student Modal -->
+        <div class="modal fade" id="updateStudent{{student[0]}}" data-bs-backdrop="static"
+            data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel"
+            aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div class="d-flex">
+                            <h5 class="modal-title" id="studentformtitle"><i class="fa fa-user" style="font-size:30px;"></i>&nbsp;Update Student</h5>
+                        </div>
+                    </div>
+                    <div class="modal-body">
+                        <form class="needs-validation" action="{{ url_for('student.update', id=student.0) }}" method="post" enctype="multipart/form-data">
+                            <div class="image-container flex-column">
+                                <div class="image-wrapper ">
+                                    <div class="image">
+                                        <img id="displayed-image{{student.0}}" src="{{student.7}}">
+                                    </div>
+                                </div>
+                                <div>
+                                  <input type="file" class="form-control" accept="image/png, image/jpeg" id="update-image-inp{{student.0}}"  value="{{student.7}}" name="selected-image{{student.0}}" onchange="updateDisplay()" hidden>
+                                  <button onclick="updateImage('{{student.0}}')" id="custom-btn" type="button">CHOOSE PHOTO</button>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="student-id" class="form-label">Student ID</label>
+                                <input type="studentinfo" class="form-control" id="student-id" value="{{student.0}}" name="student-id" disabled>
+                            </div>
+                            <div class="mb-3">
+                                <label for="firstname" class="form-label">First Name</label>
+                                <input type="studentinfo" class="form-control" id="firstname" value="{{student.1}}" name="firstname" required>
+                                <div class="invalid-feedback">Please enter First Name</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="middlename" class="form-label">Middle Name</label>
+                                <input type="studentinfo" class="form-control" id="middlename" value="{{student.2}}" name="middlename">
+                                <small id="middlenameHelp" class="form-text text-muted">Type NA if not applicable</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="lastname" class="form-label" required>Last Name</label>
+                                <input type="studentinfo" class="form-control" id="lastname" value="{{student.3}}" name="lastname">
+                                <div class="invalid-feedback">Please enter Last Name</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="gender" class="form-label">Gender</label>
+                                <select id="gender" name="gender" class="form-select">
+                                    <option value="{{student[4]}}">{{student[4]}}</option>
+                                    {% for gender in ['Male', 'Female', 'Others'] %}
+                                        {% if gender != student[4] %}
+                                            <option value="{{gender}}">{{gender}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="yearlevel" class="form-label">Year Level</label>
+                                <select id="yearlevel" name="yearlevel" class="form-select">
+                                    <option value="{{student.5}}" selected>{{student.5}}</option>
+                                    {% for year in range (1,5) %}
+                                        {% if year != student[5] %}
+                                            <option value="{{year}}">{{year}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="course" class="form-label">Course</label>
+                                <select id="course" name="course" class="form-select">
+                                    <option value="{{student.8}}" name="course">{{student.8}}</option>
+                                    {% for course in data[1] %}
+                                        {% if course[1] != student[8] %}
+                                            <option value="{{course[1]}}" name="course">{{course[1]}}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="modal-footer">
+                            <button type="button" class="btn btn-danger" data-bs-dismiss="modal"><i class="fa fa-ban"></i>&nbsp;Cancel</button>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-check"></i>&nbsp;Save Changes</button>
+                        </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div> <!-- end of update_student modal -->
+        
+    {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <td>
+                <nav aria-label="Page navigation example">
+                    <ul class="pagination">
+                      <form action="{{ url_for('student.prev') }}" method="post">
+                        <li class="page-item">
+                          {% if limit == 'min' or limit == 'min-and-max' %}
+                          <button type="submit" class="page-link" aria-label="Previous" name="previous" disabled><i class="fa fa-chevron-left"></i>&nbsp;Previous</button>
+                          {% else %}
+                          <button type="submit" class="page-link" aria-label="Previous" name="previous"><i class="fa fa-chevron-left"></i>&nbsp;Previous</button>
+                          {% endif %}
+                        </li>
+                      </form>
+                      <form action="{{ url_for('student.next') }}" method="post">
+                        <li class="page-item">
+                          {% if limit == 'max' or limit == 'min-and-max' %}
+                          <button type="submit" class="page-link"  aria-label="Next" name="next" disabled>Next&nbsp;<i class="fa fa-chevron-right"></i></button>
+                          {% else %}
+                          <button type="submit" class="page-link"  aria-label="Next" name="next">Next&nbsp;<i class="fa fa-chevron-right"></i></button>
+                          {% endif %}
+                        </li>
+                      </form>
+                    </ul>
+                    <form class="p-2" action="{{ url_for('student.students') }}">
+                        <label for="limit-field">Show </label>
+                        <input id="limit-field" name="limit-field" type="number" value="{{student_limit}}" min="5" max="{{datacount}}">
+                        <label for="limit-field"> students</label>
+                    </form>
+                </nav>
+            </td>
+        </tr>
+    </tfoot>
+</table>
+<div>
+</div>
+
+
+{% endblock %}

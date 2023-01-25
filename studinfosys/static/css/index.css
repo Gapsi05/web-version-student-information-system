@@ -1,0 +1,34 @@
+@import 
+url('https://fonts.googleapis.com/css?family=Kanit&display=swap');
+body{
+    background-repeat: no-repeat;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+#main-image{
+    border-top-left-radius: 30px;
+    border-bottom-left-radius: 30px;
+}
+.btn1{
+    border: none;
+    outline: none;
+    height: 50px;
+    width: 100%;
+    background-color:#5c0303;
+    color: white;
+    border-radius: 10px;
+
+    font-style: normal;
+    font-weight: bold;
+}
+.btn1:hover{
+    background-color : #ffd853;
+    color: #5c0303;
+    border: 2px solid #5c0303;
+}
+
+.form-control{
+    background-color: white;
+    border: 1px solid #5c0303;
+}
